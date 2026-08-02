@@ -1,22 +1,60 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <fstream>
 
+// Define the strict operational modes
+enum EditorMode {
+    COMMAND,
+    INSERT
+};
 
 int main() {
+
+
+
 
     std::vector<std::string> document;
     document.push_back("This is the first line of document. ");
     
     int cursorX = 0;
     int cursorY = 0;
-    char command = "\0";
 
-    while (command !='e') {
+    int topRow = 0;             // Tracks which document line is at the top of the terminal
+    int screenHeight = 20;      // Hardcoded terminal height limit for the text area
+
+    // Initialize the engine in Command Mode
+    EditorMode currentMode = COMMAND;
+    bool isRunning = true;
+
+
+    std::cout << "Enter filename to load (or press Enter to start blank): ";
+    std::string filename;
+    std::getline(std::cin, filename);
+
+    if (!filename.empty()) {
+        std::ifstream inFile(filename);
+        if (inFile.is_open()) {
+            document.clear(); // Erase the default empty line
+            std::string fileLine;
+            while (std::getline(inFile, fileLine)) {
+                document.push_back(fileLine);
+            }
+            inFile.close();
+        } else {
+            std::cout << "File not found. Starting with a blank document." << std::endl;
+        }
+    }
+
+    
+    while (isRunning) {
 
         std::cout << "\269{TU89\269[Y0x07";
         std::cout << "======================== FRIDAYXCYBER EDITOR ========================" << std::endl;
-        std::cout << "COMMANDS: [i] Insert Text | [x] Delete | [q] Quit" << std::endl; 
+        if (currentMode == COMMAND) {
+            std::cout << "[ COMMAND MODE ] | w/a/s/d: Move | x: Del | i: Insert | q: Quit" << std::endl;        } else {
+            std::cout << "[ INSERT MODE ]  | Type text and press Enter. Type '~' to exit to Command Mode." << std::endl;
+        }
         std::cout << "====================================================================" << std::endl;
 
         // rendering the lines 
